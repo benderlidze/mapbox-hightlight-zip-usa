@@ -59,6 +59,9 @@
             center: { lng: -86.93594998284698, lat: 35.829248527557525 }
         });
 
+        //add zoom and rotation controls to the map.
+        map.addControl(new mapboxgl.NavigationControl());
+        
 
         map.on('load', function () {
 
