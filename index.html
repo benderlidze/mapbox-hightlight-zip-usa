@@ -42,16 +42,16 @@
         const mainData = {
             population: []
         }
-        const data = [
-            {
-                name: "My Floor Garage Guys",
-                address: "3124 Brimstead Dr, Franklin, TN",
-                lat: 35.92578728007431,
-                lng: -86.90810097975941,
-                image: "https://www.mygaragefloorguys.com/wp-content/uploads/2020/12/My-Garage-Floor-Guys.png.webp",
-                zip: [37064, 37064, 37067, 37179, 37062, 37069, 37027, 37014, 37046, 37135, 37174, 37179, 37205, 37215, 37220, 37204, 37212, 37210, 37211, 38402, 38401]
-            }
-        ]
+        // const data = [
+        //     {
+        //         name: "My Floor Garage Guys",
+        //         address: "3124 Brimstead Dr, Franklin, TN",
+        //         lat: 35.92578728007431,
+        //         lng: -86.90810097975941,
+        //         image: "https://www.mygaragefloorguys.com/wp-content/uploads/2020/12/My-Garage-Floor-Guys.png.webp",
+        //         zip: [37064, 37064, 37067, 37179, 37062, 37069, 37027, 37014, 37046, 37135, 37174, 37179, 37205, 37215, 37220, 37204, 37212, 37210, 37211, 38402, 38401]
+        //     }
+        // ]
 
         mapboxgl.accessToken = 'pk.eyJ1Ijoic2FsdHlzbWVkaWEiLCJhIjoiY2xmd3dxd3VyMGxoazNrbzN0a2F6emNvMSJ9.6ZuD_aJQoQx96_TSDwqT9A';
         const map = new mapboxgl.Map({
@@ -63,11 +63,6 @@
 
         //add zoom and rotation controls to the map.
         map.addControl(new mapboxgl.NavigationControl());
-
-        d3.csv("uszips.csv")
-            .then(d => {
-                mainData.population.push(...d)
-            })
 
         map.on('load', function () {
 
@@ -197,34 +192,52 @@
             //     })
 
 
-            data.map(d => {
+            Promise.all([
+                d3.csv("uszips.csv"),
+                d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQMx2LbVytvaBd7xqM5sAlokomzjTmNCH07Gh2dDbDTrWSnfaDgc6uo0txh5iNHSu1mS5vTFXrmywjJ/pub?output=csv"),
+            ]).then(json => {
+                console.log('d', json);
 
-                const population = mainData.population
-                    .filter(i => d.zip.map(String).includes(i.zip))
-                    .reduce((a, b) => a + Number(b.population), 0)
-                const fPopulation = new Intl.NumberFormat().format(population)
+                const [populationData, data] = json
 
-                new mapboxgl.Marker()
-                    .setLngLat([d.lng, d.lat])
-                    .setPopup(
-                        new mapboxgl.Popup({ offset: 25 }) // add popups
-                            .setHTML(
-                                `
+                console.log('', populationData, data);
+                const allZips = data.map(d => {
+                    console.log('d', d);
+                    const zip = d.zip.split(",").map(s => String(s).trim())
+                    const population = populationData
+                        .filter(i => zip.includes(i.zip))
+                        .reduce((a, b) => a + Number(b.population), 0)
+                    const fPopulation = new Intl.NumberFormat().format(population)
+
+                    new mapboxgl.Marker()
+                        .setLngLat([d.lng, d.lat])
+                        .setPopup(
+                            new mapboxgl.Popup({ offset: 25 }) // add popups
+                                .setHTML(
+                                    `
                                 <img src="${d.image}" style="width: 100px; height: 100px;object-fit: scale-down;"/>
                                 <h3>${d.name}</h3>
                                 <p>${d.address}</p>
                                 <p>Population:${fPopulation}</p>
                                 `
-                            )
-                    )
-                    .addTo(map);
+                                )
+                        )
+                        .addTo(map);
+
+                    return zip
+                })
+
+                console.log('allZips', allZips);
+
 
                 map.setPaintProperty("county", "fill-color", ['case',
-                    ['in', ['get', 'GEOID10'], ["literal", d.zip.map(s => String(s))]],
-                    'red',
+                    ['in', ['get', 'GEOID10'], ["literal", allZips.flat()]], 'red',
                     'white'
                 ])
+
             })
+
+
 
 
         });
