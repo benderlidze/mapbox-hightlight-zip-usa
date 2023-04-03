@@ -53,9 +53,7 @@
             }
         ]
 
-
-
-        mapboxgl.accessToken = 'pk.eyJ1IjoidHJ1c3RzY291dCIsImEiOiJja3d3ODZvdnMwMTR4MnZydW01c3RsbG92In0.qlNQ_ZeZAEeRC4-reSbroA';
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic2FsdHlzbWVkaWEiLCJhIjoiY2xmd3dxd3VyMGxoazNrbzN0a2F6emNvMSJ9.6ZuD_aJQoQx96_TSDwqT9A';
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
@@ -75,14 +73,14 @@
 
             map.addSource('mapbox-usa-county', {
                 "type": "vector",
-                "url": "mapbox://trustscout.9shrei3u"
+                "url": "mapbox://saltysmedia.cqb2vb15"
             });
 
             map.addLayer({
                 "id": "county",
                 "type": "fill",
                 "source": "mapbox-usa-county",
-                "source-layer": "tl_2021_us_zcta520_1-5hu4o2",
+                "source-layer": "tl_2019_us_zcta510-dyxk7g",
                 "paint": {
                     "fill-color": 'white',
                     "fill-opacity": 0.3,
@@ -93,29 +91,29 @@
                 "id": "countyBorder",
                 "type": "line",
                 "source": "mapbox-usa-county",
-                "source-layer": "tl_2021_us_zcta520_1-5hu4o2",
+                "source-layer": "tl_2019_us_zcta510-dyxk7g",
                 'paint': {
                     'line-width': 0,
                     'line-color': '#A3BCE8'
                 }
             });
 
-            map.addSource('mapbox-usa-postcodes', {
-                "type": "vector",
-                "url": "mapbox://trustscout.9shrei3u"
-            });
+            // map.addSource('mapbox-usa-postcodes', {
+            //     "type": "vector",
+            //     "url": "mapbox://saltysmedia.cqb2vb15"
+            // });
 
-            map.addLayer({
-                "id": "boundary",
-                "type": "fill",
-                "source": "mapbox-usa-postcodes",
-                "source-layer": "tl_2021_us_zcta520_1-5hu4o2",
-                "paint": {
-                    "fill-color": 'black',
-                    "fill-opacity": 0.01,
-                    'fill-outline-color': "black",
-                },
-            });
+            // map.addLayer({
+            //     "id": "boundary",
+            //     "type": "fill",
+            //     "source": "mapbox-usa-postcodes",
+            //     "source-layer": "tl_2019_us_zcta510-dyxk7g",
+            //     "paint": {
+            //         "fill-color": 'black',
+            //         "fill-opacity": 0.01,
+            //         'fill-outline-color': "black",
+            //     },
+            // });
 
 
             // map.on('click', "boundary", function (e) {
@@ -205,7 +203,7 @@
                     .filter(i => d.zip.map(String).includes(i.zip))
                     .reduce((a, b) => a + Number(b.population), 0)
                 const fPopulation = new Intl.NumberFormat().format(population)
-                
+
                 new mapboxgl.Marker()
                     .setLngLat([d.lng, d.lat])
                     .setPopup(
@@ -222,7 +220,7 @@
                     .addTo(map);
 
                 map.setPaintProperty("county", "fill-color", ['case',
-                    ['in', ['get', 'GEOID20'], ["literal", d.zip.map(s => String(s))]],
+                    ['in', ['get', 'GEOID10'], ["literal", d.zip.map(s => String(s))]],
                     'red',
                     'white'
                 ])
@@ -231,39 +229,39 @@
 
         });
 
-        function selectById(countySelection) {
-            var filter = ['any'];
-            Object.keys(countySelection).map(function (code) {
-                //console.log('', code);
-                filter.push(['==', ['get', 'geoid10'], code])
-            })
-            map.setPaintProperty('boundary', "fill-color", ['case',
-                ['any',
-                    filter
-                ], "green",
-                'black'
-            ])
-            var json = {};
-            var codes = Object.keys(countySelection);
-            var features = map.queryRenderedFeatures({
-                layers: ['boundary']
-            });
-            features.forEach(function (item) {
-                if (codes.includes(item.properties.geoid10)) {
-                    json[item.properties.geoid10] = item.geometry;
-                }
-            })
+        // function selectById(countySelection) {
+        //     var filter = ['any'];
+        //     Object.keys(countySelection).map(function (code) {
+        //         //console.log('', code);
+        //         filter.push(['==', ['get', 'geoid10'], code])
+        //     })
+        //     map.setPaintProperty('boundary', "fill-color", ['case',
+        //         ['any',
+        //             filter
+        //         ], "green",
+        //         'black'
+        //     ])
+        //     var json = {};
+        //     var codes = Object.keys(countySelection);
+        //     var features = map.queryRenderedFeatures({
+        //         layers: ['boundary']
+        //     });
+        //     features.forEach(function (item) {
+        //         if (codes.includes(item.properties.geoid10)) {
+        //             json[item.properties.geoid10] = item.geometry;
+        //         }
+        //     })
 
-            // console.log('', json);
-            var text = Object.keys(json).map(function (item) {
-                return "<b>ZIP: </b>" + item + " "
-            }).join("<br>")
-            info.innerHTML = text
+        //     // console.log('', json);
+        //     var text = Object.keys(json).map(function (item) {
+        //         return "<b>ZIP: </b>" + item + " "
+        //     }).join("<br>")
+        //     info.innerHTML = text
 
 
-            const zip = Object.keys(json).map(i => i).join("")
-            window.parent.postMessage({ message: "zipCode", value: zip }, "*");
-        }
+        //     const zip = Object.keys(json).map(i => i).join("")
+        //     window.parent.postMessage({ message: "zipCode", value: zip }, "*");
+        // }
     </script>
 
 </body>
